@@ -4,8 +4,18 @@ from google.genai import types
 from PIL import Image
 from io import BytesIO
 import io
+import torch
+from diffusers import DiffusionPipeline
 
 st.title("Multi-Feature AI App")
+
+device = "mps" if torch.backends.mps.is_available() else "cpu"
+
+pipe = DiffusionPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0",
+    torch_dtype=torch.bfloat16 if device != "cpu" else torch.float32
+)
+pipe.to(device)
 
 api_key = st.text_input("Enter your Gemini API Key:", type="password")
 
@@ -28,35 +38,14 @@ if api_key:
         full_prompt = f"{system_prompt}\n\nMath Problem: {prompt}"
         return generate_response(full_prompt, temperature)
 
-    def generate_image(prompt):
+    def generate_local_image(prompt):
         banned_words = ["violence", "nudity", "drugs"]
         if any(word in prompt.lower() for word in banned_words):
             return None, "Unsafe prompt detected!"
-
         try:
-            contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
-            config_params = types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=types.ImageConfig(image_size="1K"),
-                temperature=0.5
-            )
-            response_stream = client.models.generate_content_stream(
-                model="gemini-2.5-flash-image",
-                contents=contents,
-                config=config_params
-            )
-
-            for chunk in response_stream:
-                if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
-                    continue
-                part = chunk.candidates[0].content.parts[0]
-                if part.inline_data and part.inline_data.data:
-                    image_bytes = part.inline_data.data
-                    img = Image.open(BytesIO(image_bytes))
-                    return img, None
-
-            return None, "No image generated."
-
+            with torch.autocast(device_type=device, dtype=torch.bfloat16 if device != "cpu" else torch.float32):
+                image = pipe(prompt, guidance_scale=7.5).images[0]
+            return image, None
         except Exception as e:
             return None, f"Error: {str(e)}"
 
@@ -127,7 +116,7 @@ if api_key:
         if st.button("Generate", key="gen_img"):
             if prompt.strip():
                 with st.spinner("Generating image..."):
-                    img, error = generate_image(prompt.strip())
+                    img, error = generate_local_image(prompt.strip())
                     if error:
                         st.warning(error)
                     else:
@@ -146,7 +135,7 @@ if api_key:
     elif choice == "Safe AI Image Generator":
         run_safe_ai_image_generator()
 else:
-    st.warning("Enter your Gemini API Key to use the app.")
-    
+    st.warning("Enter your Gemini API Key to use the chat and math features.")
+
 st.divider()
 st.write("Goodbye, Codingal! 🥲")
