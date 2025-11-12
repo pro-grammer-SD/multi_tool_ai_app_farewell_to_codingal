@@ -32,15 +32,31 @@ if api_key:
         banned_words = ["violence", "nudity", "drugs"]
         if any(word in prompt.lower() for word in banned_words):
             return None, "Unsafe prompt detected!"
+
         try:
             contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
-            config_params = types.GenerateContentConfig(temperature=0.5)
-            response = client.models.generate_content(
-                model="gemini-2.5-flash-image", contents=contents, config=config_params
+            config_params = types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(image_size="1K"),
+                temperature=0.5
             )
-            image_bytes = response.image_bytes
-            img = Image.open(BytesIO(image_bytes))
-            return img, None
+            response_stream = client.models.generate_content_stream(
+                model="gemini-2.5-flash-image",
+                contents=contents,
+                config=config_params
+            )
+
+            for chunk in response_stream:
+                if not chunk.candidates or not chunk.candidates[0].content or not chunk.candidates[0].content.parts:
+                    continue
+                part = chunk.candidates[0].content.parts[0]
+                if part.inline_data and part.inline_data.data:
+                    image_bytes = part.inline_data.data
+                    img = Image.open(BytesIO(image_bytes))
+                    return img, None
+
+            return None, "No image generated."
+
         except Exception as e:
             return None, f"Error: {str(e)}"
 
