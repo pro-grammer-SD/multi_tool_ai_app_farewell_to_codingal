@@ -71,7 +71,7 @@ if api_key:
                 with st.spinner("Generating AI response..."):
                     response = generate_response(user_input.strip(), temperature=0.3)
                 st.session_state.history_ata.append({"question": user_input.strip(), "answer": response})
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.warning("Please enter a question before clicking Ask.")
 
@@ -92,7 +92,7 @@ if api_key:
                 with st.spinner("Solving..."):
                     response = generate_math_response(user_input.strip())
                 st.session_state.history_mm.append({"problem": user_input.strip(), "solution": response})
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.warning("Enter a problem first.")
 
