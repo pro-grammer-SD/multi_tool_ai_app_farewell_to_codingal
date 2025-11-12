@@ -3,7 +3,6 @@ from google import genai
 from google.genai import types
 from PIL import Image
 from io import BytesIO
-import re
 import io
 
 st.title("Multi-Feature AI App")

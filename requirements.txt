@@ -1,0 +1,3 @@
+streamlit # tho added by cloud, but still for local deploys it's ok!
+google-genai # for gemini
+Pillow # for image operations
