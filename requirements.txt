@@ -1,5 +1,8 @@
-streamlit # tho added by cloud, but still for local deploys it's ok!
-google-genai # for gemini
-Pillow # for image operations
-torch # ai pipeline utility providing some values
-diffusers # ai pipeline lib
+streamlit>=1.30.0            # Web app framework for GUI and interactivity
+google-genai>=0.4.0          # Gemini AI client library
+Pillow>=10.0.0               # Image operations (loading, saving, displaying)
+torch>=2.1.0                 # Core PyTorch library for AI pipelines
+diffusers>=0.26.0            # Stable Diffusion pipelines and generative models
+transformers>=4.40.0         # Required by diffusers for tokenizer & model utilities
+accelerate>=0.23.0           # Optimizations for CPU/GPU pipelines
+safetensors>=0.3.1           # Safe tensor storage for models
