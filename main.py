@@ -36,7 +36,7 @@ if api_key:
             contents = [types.Content(role="user", parts=[types.Part.from_text(text=prompt)])]
             config_params = types.GenerateContentConfig(temperature=0.5)
             response = client.models.generate_content(
-                model="gemini-2.0-image-alpha", contents=contents, config=config_params
+                model="gemini-2.5-flash-image", contents=contents, config=config_params
             )
             image_bytes = response.image_bytes
             img = Image.open(BytesIO(image_bytes))
